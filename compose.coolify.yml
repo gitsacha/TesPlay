@@ -1,0 +1,54 @@
+# TesPlay on sachabc (Coolify-managed). Traefik routes tesplay.sachabc.com by FQDN,
+# behind a Cloudflare Access app. Env (PUBLIC_URL, TRUST_PROXY, SETUP_TOKEN, GOOGLE_*)
+# comes from Coolify, never here. Infra pointer: shared/infra/hosts/sachabc/docker/tesplay/.
+services:
+  app:
+    build:
+      context: .
+    restart: unless-stopped
+    init: true
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: "4174"
+      DATA_DIR: /app/data
+      PUBLIC_URL: ${PUBLIC_URL:-https://tesplay.sachabc.com}
+      TRUST_PROXY: ${TRUST_PROXY:-1}
+      SERVER_NAME: TesPlay
+      REMOTE_ENABLED: "true"
+      YOUTUBE_RESOLVER_URL: http://youtube:4180
+      SETUP_TOKEN: ${SETUP_TOKEN:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+    expose:
+      - "4174"
+    volumes:
+      # SQLite + generated encryption.key. Owned by uid 1000 (node) on the host.
+      - /home/ubuntu/docker/tesplay/data:/app/data
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 20s
+
+  # Internal-only yt-dlp resolver; no Traefik route.
+  youtube:
+    build:
+      context: .
+      dockerfile: Dockerfile.youtube
+      args:
+        YT_DLP_VERSION: "2026.08.19"
+    restart: unless-stopped
+    init: true
+    environment:
+      YOUTUBE_ENABLED: "true"
+      YT_DLP_PATH: /opt/yt-dlp/bin/yt-dlp
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 20s
