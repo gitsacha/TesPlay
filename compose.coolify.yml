@@ -45,6 +45,9 @@ services:
     environment:
       YOUTUBE_ENABLED: "true"
       YT_DLP_PATH: /opt/yt-dlp/bin/yt-dlp
+      # YouTube blocks Oracle IPs; resolve through the fridge home-IP proxy
+      # (shared/infra/hosts/fridge/docker/addon-proxy).
+      HTTPS_PROXY: http://100.68.93.61:8888
     read_only: true
     tmpfs:
       - /tmp:size=64m,mode=1777
