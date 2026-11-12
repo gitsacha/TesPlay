@@ -1,3 +1,4 @@
+import "./browser-compat";
 import { createRoot } from "react-dom/client";
 import { lazy, Suspense } from "react";
 import App from "./App";

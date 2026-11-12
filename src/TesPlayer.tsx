@@ -89,11 +89,11 @@ export default function TesPlayer({ playback, item, resume, plexCompatibility, c
   const options = useRef({ resume, item, plexCompatibility });
   options.current = { resume, item, plexCompatibility };
   const error = (reason: unknown) => {
-    const typed = reason as { code?: string };
+    const typed = reason as { code?: string; message?: string };
     const unavailable = reason instanceof Error && reason.message === 'Canvas playback is unavailable.';
     if (typed?.code === 'STALE_OPERATION' || (reason instanceof DOMException && reason.name === 'AbortError')) return;
     // Engine errors are already sanitized. Avoid showing raw fetch URLs or credentials.
-    const text = reason instanceof TesPlaySourceError ? reason.message : unavailable ? 'This browser does not support TesPlayer canvas playback. Use an updated browser with WebCodecs enabled.' : typed?.code ? `Playback could not continue (${typed.code}). ${playback.provider === 'plex' ? 'Try again or choose Plex compatibility for this title.' : 'Reopen this title or try another stream.'}` : 'This source could not play. Check its connection and browser codec support, then try again.';
+    const text = reason instanceof TesPlaySourceError ? reason.message : unavailable ? 'This browser does not support TesPlayer canvas playback. Use an updated browser with WebCodecs enabled.' : typed?.code ? `Playback could not continue (${typed.code}). ${typed.message || ''} ${playback.provider === 'plex' ? 'Try again or choose Plex compatibility for this title.' : 'Reopen this title or try another stream.'}` : 'This source could not play. Check its connection and browser codec support, then try again.';
     if(playback.provider==='plex' && ['DEMUX_FAILED','NETWORK_TIMEOUT','RECOVERY_EXHAUSTED','DECODE_FAILED'].includes(typed?.code||'') && retries.current<2){
       if(retryPending.current)return;retryPending.current=true;retries.current++;
       progress.current(lastPosition.current,lastDuration.current);setBusy(true);setMessage('Reconnecting to your stream');
